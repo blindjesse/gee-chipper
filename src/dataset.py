@@ -76,24 +76,22 @@ def get_chip(
     return np.load(io.BytesIO(chip_response.content))
 
 
-def get_centroids(n, session):
+def get_chips(
+    pt_tf, feature_image, feature_bands, label_image, label_bands, scale, session
+):
+    feature_chip = get_chip(
+        pt_tf.numpy().tolist(), feature_image, feature_bands, scale, session
+    )
+
+    label_chip = get_chip(
+        pt_tf.numpy().tolist(), label_image, label_bands, scale, session
+    )
+
+    return (feature_chip, label_chip)
+
+
+def get_points(n=100):
     countries = ee.FeatureCollection("FAO/GAUL_SIMPLIFIED_500m/2015/level0")
     germany = countries.filter(ee.Filter.eq("ADM0_NAME", "Germany"))
     pts = ee.FeatureCollection.randomPoints(region=germany, points=n)
-    pts_tf = tf.convert_to_tensor(pts.geometry().coordinates().getInfo())
-    asset_id = "CGIAR/SRTM90_V4"
-    slope = ee.Terrain.slope(ee.Image(asset_id))
-    print(slope.bandNames().getInfo())
-
-    asset_info = get_asset_info(asset_id, session)
-    band_ids = [band["id"] for band in asset_info["bands"]]
-    scale = asset_info["bands"][0]["grid"]["affineTransform"]["scaleX"]
-    chips = [
-        get_chip(pt_tf.numpy().tolist(), slope, ["slope"], scale, session)
-        for pt_tf in pts_tf
-    ]
-    print(chips)
-
-
-session = authenticate()
-get_centroids(10, session)
+    return tf.convert_to_tensor(pts.geometry().coordinates().getInfo())
