@@ -15,9 +15,7 @@ def authenticate(key_file: str = os.environ["GA_AUTH_FILE"]) -> AuthorizedSessio
     gcs_credentials = service_account.Credentials.from_service_account_file(
         os.environ["GA_AUTH_FILE"]
     )
-    ee_creds = ee.ServiceAccountCredentials(
-        "default@numbers-and-strings.iam.gserviceaccount.com", key_file
-    )
+    ee_creds = ee.ServiceAccountCredentials(os.environ["GEE_SERVICE_ACCOUNT"], key_file)
     ee.Initialize(ee_creds)
     scoped_credentials = gcs_credentials.with_scopes(
         ["https://www.googleapis.com/auth/cloud-platform"]
