@@ -12,9 +12,7 @@ import tensorflow as tf
 
 def authenticate(key_file: str = os.environ["GA_AUTH_FILE"]) -> AuthorizedSession:
 
-    gcs_credentials = service_account.Credentials.from_service_account_file(
-        os.environ["GA_AUTH_FILE"]
-    )
+    gcs_credentials = service_account.Credentials.from_service_account_file(key_file)
     ee_creds = ee.ServiceAccountCredentials(os.environ["GEE_SERVICE_ACCOUNT"], key_file)
     ee.Initialize(ee_creds)
     scoped_credentials = gcs_credentials.with_scopes(
@@ -36,11 +34,6 @@ def get_asset_info(asset_id, session):
     return json.loads(session.get(get_asset_url(asset_id)).content)
 
 
-# def get_computed_chip(coords, image, band_ids, scale, session):
-
-# def get_asset_chip(coords, asset_id, band_ids, scale, session):
-
-
 def get_chip(
     coords: List,
     image: Union[str, ee.Image],
@@ -50,7 +43,6 @@ def get_chip(
 ):
     query = {
         "fileFormat": "NPY",
-        #        "bandIds": band_ids,
         "grid": {
             "affineTransform": {
                 "scaleX": scale,
