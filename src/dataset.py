@@ -50,7 +50,7 @@ def get_chip(
 ):
     query = {
         "fileFormat": "NPY",
-        "bandIds": band_ids,
+        #        "bandIds": band_ids,
         "grid": {
             "affineTransform": {
                 "scaleX": scale,
@@ -70,8 +70,9 @@ def get_chip(
 
     chip_response = session.post(url, json.dumps(query))
 
-    print("1")
-    return np.load(io.BytesIO(chip_response.content))
+    chip = np.load(io.BytesIO(chip_response.content)).astype("float32")
+    # Or pull out nodatas somehow
+    return np.where(chip < 0.0, 0.0, chip)
 
 
 def get_chips(
@@ -85,7 +86,10 @@ def get_chips(
         pt_tf.numpy().tolist(), label_image, label_bands, scale, session
     )
 
-    return (feature_chip, label_chip)
+    return (
+        np.expand_dims(np.expand_dims(feature_chip, axis=0), axis=-1),
+        np.expand_dims(np.expand_dims(label_chip, axis=0), axis=-1),
+    )
 
 
 def get_points(n=100):

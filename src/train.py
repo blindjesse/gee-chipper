@@ -2,6 +2,7 @@ from functools import partial
 
 import ee
 import tensorflow as tf
+from segmentation_models import Unet
 
 from dataset import authenticate, get_asset_info, get_points, get_chips
 
@@ -25,9 +26,22 @@ def get_loaded_chips(pt_tf):
             session=session,
         ),
         [pt_tf],
-        [tf.float32],
+        [tf.float32, tf.float32],
     )
 
 
-points = get_points(10)
+points = get_points(40)
 dataset = tf.data.Dataset.from_tensor_slices(points).map(get_loaded_chips)
+
+v_dataset = tf.data.Dataset.from_tensor_slices(get_points(20)).map(get_loaded_chips)
+
+model = Unet(
+    "resnet34",
+    input_shape=(None, None, 1),
+    activation="linear",
+    classes=1,
+    encoder_weights=None,
+)
+
+model.compile("SGD", "MeanSquaredError", ["RootMeanSquaredError"])
+model.fit(dataset, batch_size=1, epochs=10, validation_data=v_dataset)
